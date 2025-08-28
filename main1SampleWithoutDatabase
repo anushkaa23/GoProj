@@ -1,0 +1,160 @@
+// package main
+
+// // without database
+// import (
+// 	"log"
+// 	"os"
+//
+//
+//
+
+// 	"github.com/gofiber/fiber/v2"
+// 	"github.com/gofiber/fiber/v2/middleware/cors"
+// 	"github.com/gofiber/fiber/v2/middleware/logger"
+// 	"github.com/joho/godotenv"
+
+// )
+
+// type Todo struct {
+// 	ID        int    `json:"id"`
+// 	Completed bool   `json:"completed"`
+// 	Body      string `json:"body"`
+// }
+
+// var todos = []Todo{}
+// var nextID = 1 // unique ID counter
+
+// func main() {
+// 	app := fiber.New()
+// 	app.Use(logger.New())
+// 	app.Use(cors.New())
+
+// 	err := godotenv.Load(".env")
+// 	if err != nil {
+// 		log.Fatalf("Error loading .env file: %v", err)
+// 	}
+// 	PORT := os.Getenv("PORT")
+// 	app.Get("/", func(c *fiber.Ctx) error {
+// 		return c.JSON(fiber.Map{"msg": "Hello, World!"})
+// 	})
+
+// 	// Get all todos
+// 	app.Get("/api/todos", func(c *fiber.Ctx) error {
+// 		return c.JSON(todos)
+// 	})
+
+// 	// Create todo
+// 	app.Post("/api/todos", func(c *fiber.Ctx) error {
+// 		todo := Todo{}
+// 		if err := c.BodyParser(&todo); err != nil {
+// 			return c.Status(400).JSON(fiber.Map{
+// 				"error":   "cannot parse JSON",
+// 				"details": err.Error(),
+// 			})
+// 		}
+// 		if todo.Body == "" {
+// 			return c.Status(400).JSON(fiber.Map{"error": "Body is required"})
+// 		}
+
+// 		// Assign unique ID
+// 		todo.ID = nextID
+// 		nextID++
+
+// 		todos = append(todos, todo)
+// 		return c.Status(201).JSON(todo)
+// 	})
+
+// 	// Update (full replacement with PUT)
+// 	app.Put("/api/todos/:id", func(c *fiber.Ctx) error {
+// 		id, err := c.ParamsInt("id")
+// 		if err != nil {
+// 			return c.Status(400).JSON(fiber.Map{"error": "Invalid ID"})
+// 		}
+
+// 		todo := Todo{}
+// 		if err := c.BodyParser(&todo); err != nil {
+// 			return c.Status(400).JSON(fiber.Map{
+// 				"error":   "cannot parse JSON",
+// 				"details": err.Error(),
+// 			})
+// 		}
+// 		if todo.Body == "" {
+// 			return c.Status(400).JSON(fiber.Map{"error": "Body is required"})
+// 		}
+
+// 		for i, t := range todos {
+// 			if t.ID == id {
+// 				todo.ID = id // keep same ID
+// 				todos[i] = todo
+// 				return c.JSON(todos[i])
+// 			}
+// 		}
+// 		return c.Status(404).JSON(fiber.Map{"error": "Todo not found"})
+// 	})
+
+// 	// Update (partial update with PATCH)
+// 	app.Patch("/api/todos/:id", func(c *fiber.Ctx) error {
+// 		id, err := c.ParamsInt("id")
+// 		if err != nil {
+// 			return c.Status(400).JSON(fiber.Map{"error": "Invalid ID"})
+// 		}
+
+// 		updates := Todo{}
+// 		if err := c.BodyParser(&updates); err != nil {
+// 			return c.Status(400).JSON(fiber.Map{
+// 				"error":   "cannot parse JSON",
+// 				"details": err.Error(),
+// 			})
+// 		}
+
+// 		for i, t := range todos {
+// 			if t.ID == id {
+// 				// only update provided fields
+// 				if updates.Body != "" {
+// 					todos[i].Body = updates.Body
+// 				}
+// 				todos[i].Completed = updates.Completed
+// 				return c.JSON(todos[i])
+// 			}
+// 		}
+// 		return c.Status(404).JSON(fiber.Map{"error": "Todo not found"})
+// 	})
+
+// 	//delete a todo
+// 	// app.Delete("/api/todos/:id", func(c *fiber.Ctx) error {
+// 	// 	id, err := c.ParamsInt("id")
+// 	// 	if err != nil {
+// 	// 		return c.Status(400).JSON(fiber.Map{"error": "Invalid ID"})
+// 	// 	}
+// 	// 	for i, t := range todos {
+// 	// 		if t.ID == id {
+// 	// 			todos = append(todos[:i], todos[i+1:]...)
+// 	// 			return c.Status(200).JSON(fiber.Map{"msg": "Todo deleted"})
+// 	// 		}
+// 	// 	}
+// 	// 	return c.Status(404).JSON(fiber.Map{"error": "Todo not found"})
+// 	// })
+
+// 	// Delete a todo
+// 	app.Delete("/api/todos/:id", func(c *fiber.Ctx) error {
+// 		id, err := c.ParamsInt("id")
+// 		if err != nil {
+// 			return c.Status(400).JSON(fiber.Map{"error": "Invalid ID"})
+// 		}
+
+// 		log.Printf("DELETE called with id=%d", id)
+// 		log.Printf("Current todos: %+v", todos)
+
+// 		for i, t := range todos {
+// 			if t.ID == id {
+// 				todos = append(todos[:i], todos[i+1:]...)
+// 				log.Printf("Deleted todo with id=%d", id)
+// 				return c.Status(200).JSON(fiber.Map{"message": "Todo deleted"})
+// 			}
+// 		}
+
+// 		return c.Status(404).JSON(fiber.Map{"error": "Todo not found"})
+// 	})
+
+// 	log.Fatal(app.Listen(":" + PORT))
+// }
